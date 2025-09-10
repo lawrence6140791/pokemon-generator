@@ -6,11 +6,8 @@ import { LOADING_THRESHOLD_MS } from '../utils/constants.js';
 let timer = null;
 let visible = false;
 
-const STATUS_AREA_ID = 'status-area';
-
-function getArea() {
-  return document.getElementById(STATUS_AREA_ID);
-}
+const DRAW_BUTTON_ID = 'draw-btn';
+function getButton() { return document.getElementById(DRAW_BUTTON_ID); }
 
 export function startLoading() {
   clear();
@@ -27,23 +24,20 @@ export function stopLoading() {
 
 function show() {
   if (visible) return;
-  const area = getArea();
-  if (!area) return;
-  const el = document.createElement('div');
-  el.className = 'loading';
-  el.textContent = '載入中...';
-  el.setAttribute('role', 'status');
-  el.setAttribute('aria-live', 'polite');
-  area.appendChild(el);
+  const btn = getButton();
+  if (!btn) return;
+  btn.classList.add('is-loading');
+  btn.setAttribute('aria-busy', 'true');
   visible = true;
 }
 
 function hide() {
   if (!visible) return;
-  const area = getArea();
-  if (!area) return;
-  const loadingEl = area.querySelector('.loading');
-  if (loadingEl) loadingEl.remove();
+  const btn = getButton();
+  if (btn) {
+    btn.classList.remove('is-loading');
+    btn.removeAttribute('aria-busy');
+  }
   visible = false;
 }
 

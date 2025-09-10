@@ -8,9 +8,6 @@ let templateEl = null;
 function ensureTemplateLoaded() {
   if (!templateEl) {
     templateEl = document.querySelector('#pokemon-card-template');
-    if (!templateEl) {
-      console.warn('[card] template #pokemon-card-template not found (did you include card-template.html?)');
-    }
   }
   return templateEl;
 }
@@ -35,27 +32,39 @@ export function renderCard(pokemon) {
 }
 
 export function updateCard(cardEl, pokemon) {
-  // 圖片預載策略：先預載主圖，成功後再一次性更新所有欄位
-  if (!cardEl || !pokemon) return;
-  const newImgUrl = pokemon.imageUrl;
-  if (newImgUrl) {
-    const preloader = new Image();
-    preloader.onload = () => {
+  // 回傳 Promise：確保外層可在主圖 + 動圖（若有且不同）皆完成載入後再結束 loading。
+  return new Promise(resolve => {
+    if (!cardEl || !pokemon) { resolve(); return; }
+    const primary = pokemon.imageUrl || null;
+    const animated = (pokemon.animatedImage && pokemon.animatedImage !== primary)
+      ? pokemon.animatedImage
+      : null;
+    const urls = [primary, animated].filter(Boolean);
+    if (urls.length === 0) {
       applyData(cardEl, pokemon);
-      const imgEl = cardEl.querySelector('.sprite');
-      if (imgEl) {
-        imgEl.classList.add('fade-in');
-        setTimeout(() => imgEl.classList.remove('fade-in'), 400);
+      resolve();
+      return;
+    }
+    let remaining = urls.length;
+    const doneOne = () => {
+      remaining -= 1;
+      if (remaining === 0) {
+        applyData(cardEl, pokemon);
+        const imgEl = cardEl.querySelector('.sprite');
+        if (imgEl) {
+          imgEl.classList.add('fade-in');
+          setTimeout(() => imgEl.classList.remove('fade-in'), 400);
+        }
+        resolve();
       }
     };
-    preloader.onerror = () => {
-      // 即使載入失敗仍嘗試更新（會使用 fallback 或 UNKNOWN_IMAGE）
-      applyData(cardEl, pokemon);
-    };
-    preloader.src = newImgUrl;
-  } else {
-    applyData(cardEl, pokemon);
-  }
+    urls.forEach(u => {
+      const img = new Image();
+      img.onload = doneOne;
+      img.onerror = doneOne; // 失敗也繼續，使用 fallback 資料
+      img.src = u;
+    });
+  });
 }
 
 function applyData(cardEl, pokemon) {
