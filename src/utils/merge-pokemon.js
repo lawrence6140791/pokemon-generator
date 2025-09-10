@@ -14,25 +14,45 @@ function findAnimatedSprite(rawPokemon) {
   }
 }
 
-function selectImageUrl(rawPokemon) {
-  const animated = findAnimatedSprite(rawPokemon);
-  if (animated) return animated;
-  const staticImg = rawPokemon?.sprites?.front_default;
-  if (staticImg) return staticImg;
+function findSvgSprite(rawPokemon) {
+  try {
+    return rawPokemon?.sprites?.other?.dream_world?.front_default || null;
+  } catch (_) {
+    return null;
+  }
+}
+
+function findStaticPng(rawPokemon) {
+  return rawPokemon?.sprites?.front_default || null;
+}
+
+// 主顯示圖優先序： dream_world SVG → front_default → UNKNOWN
+function selectPrimaryImage(rawPokemon) {
+  const svg = findSvgSprite(rawPokemon);
+  if (svg) return svg;
+  const png = findStaticPng(rawPokemon);
+  if (png) return png;
   return UNKNOWN_IMAGE;
 }
 
-const LANGUAGE_PRIORITY = ['zh-Hant', 'zh-Hans', 'en'];
+// 向後相容：舊測試使用 imageUrl 指向 (animated || static)；現改為 primary image（不再自動取 animated）
+// 若需要背面動圖顯示，另外提供 animatedImage 欄位。
+function selectImageUrl(rawPokemon) {
+  return selectPrimaryImage(rawPokemon);
+}
 
-function extractLocalized(entries, valueKey) {
+const NAME_LANGUAGE_PRIORITY = ['zh-Hant', 'zh-Hans', 'en'];
+const DESCRIPTION_LANGUAGE_PRIORITY = ['zh-Hant', 'zh-Hans'];
+
+function extractLocalized(entries, valueKey, priority) {
   if (!Array.isArray(entries)) return DEFAULT_TEXT;
-  for (const lang of LANGUAGE_PRIORITY) {
+  for (const lang of priority) {
     const match = entries.find(e => e?.language?.name === lang);
     if (match && match[valueKey]) {
       return normalizeWhitespace(match[valueKey]);
     }
   }
-  // fallback: 若都找不到 en，嘗試第一個有效文字；否則 DEFAULT_TEXT
+  // fallback: 尋找第一個有效文字；否則 DEFAULT_TEXT
   const any = entries.find(e => e && e[valueKey]);
   return any ? normalizeWhitespace(any[valueKey]) : DEFAULT_TEXT;
 }
@@ -44,11 +64,18 @@ function normalizeWhitespace(str) {
 }
 
 function selectName(rawSpecies) {
-  return extractLocalized(rawSpecies?.names, 'name');
+  return extractLocalized(rawSpecies?.names, 'name', NAME_LANGUAGE_PRIORITY);
 }
 
 function selectDescription(rawSpecies) {
-  return extractLocalized(rawSpecies?.flavor_text_entries, 'flavor_text');
+  if (!Array.isArray(rawSpecies?.flavor_text_entries)) return DEFAULT_TEXT;
+  for (const lang of DESCRIPTION_LANGUAGE_PRIORITY) {
+    const match = rawSpecies.flavor_text_entries.find(e => e?.language?.name === lang);
+    if (match && match.flavor_text) {
+      return normalizeWhitespace(match.flavor_text);
+    }
+  }
+  return DEFAULT_TEXT;
 }
 
 function extractTypes(rawPokemon) {
@@ -67,12 +94,25 @@ export function buildPokemon(rawPokemon, rawSpecies, timestamp = Date.now()) {
   const { types, primaryType } = extractTypes(rawPokemon);
   const name = selectName(rawSpecies);
   const description = selectDescription(rawSpecies);
-  const imageUrl = selectImageUrl(rawPokemon);
+  const englishNameRaw = (rawPokemon?.name || '').trim();
+  const svgImage = findSvgSprite(rawPokemon);
+  const staticImage = findStaticPng(rawPokemon);
+  const animatedImage = findAnimatedSprite(rawPokemon);
+  const imageUrl = selectPrimaryImage(rawPokemon);
+  const stats = extractStats(rawPokemon);
   return {
     id: rawPokemon.id,
-    name,
+  name,
+  englishName: englishNameRaw || '',
     description,
     imageUrl,
+    svgImage: svgImage || null,
+    staticImage: staticImage || null,
+    animatedImage: animatedImage || null,
+    hp: stats.hp,
+    attack: stats.attack,
+    defense: stats.defense,
+    speed: stats.speed,
     types,
     primaryType,
     primaryColor: primaryType ? colorForType(primaryType) : '#CCCCCC',
@@ -87,4 +127,27 @@ export const __testables = {
   selectDescription,
   extractTypes,
   normalizeWhitespace,
+  findAnimatedSprite,
+  findSvgSprite,
+  findStaticPng,
+  selectPrimaryImage,
+  extractStats,
 };
+
+// 取出指定四項能力值
+function extractStats(rawPokemon) {
+  const result = { hp: 0, attack: 0, defense: 0, speed: 0 };
+  if (!Array.isArray(rawPokemon?.stats)) return result;
+  rawPokemon.stats.forEach(s => {
+    const name = s?.stat?.name;
+    const val = typeof s?.base_stat === 'number' ? s.base_stat : 0;
+    switch (name) {
+      case 'hp': result.hp = val; break;
+      case 'attack': result.attack = val; break;
+      case 'defense': result.defense = val; break;
+      case 'speed': result.speed = val; break;
+      default: break; // 其他（special-attack 等）暫不顯示
+    }
+  });
+  return result;
+}

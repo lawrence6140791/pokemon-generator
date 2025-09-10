@@ -13,3 +13,36 @@ html, body { min-width:390px; }
 /* 狀態區域占位 */
 #status-area .loading { color:#0d6efd; }
 #status-area .error { color:#dc3545; }
+
+/* Poké Ball Button */
+.pokeball-btn { background:transparent; border:none; display:flex; flex-direction:column; align-items:center; cursor:pointer; }
+.pokeball-btn:disabled { opacity:0.5; cursor: not-allowed; }
+.pokeball-btn .pokeball-icon { width:80px; height:80px; transform-origin:50% 50%; }
+/* Hover / focus 時慢速旋轉 */
+.pokeball-btn:hover .pokeball-icon,
+.pokeball-btn:focus-visible .pokeball-icon { animation: spin 3s linear infinite; }
+/* 載入中加速旋轉 */
+.pokeball-btn.is-loading .pokeball-icon { animation: spin 1s linear infinite; }
+.pokeball-label { font-size:0.95rem; }
+@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) {
+	.pokeball-btn:hover .pokeball-icon,
+	.pokeball-btn:focus-visible .pokeball-icon { animation: none; }
+	.pokeball-btn.is-loading .pokeball-icon { animation: spin 1.5s linear infinite; }
+}
+
+/* HP Badge */
+.hp-badge { position:absolute; top:8px; right:8px; background:#fff; padding:4px 10px; border-radius:999px; font-size:0.75rem; font-weight:600; box-shadow:0 2px 4px rgba(0,0,0,0.15); }
+.hp-badge .hp-value { font-weight:700; margin-left:4px; }
+
+/* Stats Row */
+.stats-row { font-size:0.75rem; }
+.stat-item .stat-value { font-weight:600; font-size:0.85rem; }
+.image-wrapper { width:160px; height:160px; display:flex; align-items:center; justify-content:center; }
+.image-wrapper img { max-height:160px; }
+.back-image-wrapper { width:140px; height:140px; display:flex; align-items:center; justify-content:center; }
+.back-image-wrapper img { max-height:140px; }
+
+/* Image Fade In */
+.sprite.fade-in { animation: fadeIn 0.4s ease-in; }
+@keyframes fadeIn { from { opacity:0; transform:scale(.95); } to { opacity:1; transform:scale(1); } }
