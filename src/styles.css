@@ -1,0 +1,15 @@
+/* 基礎版面與 RWD 最小寬度 */
+html, body { min-width:390px; }
+#app-root { max-width:520px; }
+#card-area { perspective: 1200px; }
+
+/* 卡片後續會在 T016+ 擴充 */
+.poke-card { width: 300px; height: 420px; position: relative; cursor: pointer; }
+.poke-card-inner { position:absolute; inset:0; transition: transform 0.5s; transform-style:preserve-3d; }
+.poke-card.is-flipped .poke-card-inner { transform: rotateY(180deg); }
+.poke-card-face { position:absolute; inset:0; backface-visibility:hidden; border-radius:12px; box-shadow:0 4px 10px rgba(0,0,0,0.15); display:flex; flex-direction:column; justify-content:center; align-items:center; padding:1rem; }
+.poke-card-face.back { transform: rotateY(180deg); }
+
+/* 狀態區域占位 */
+#status-area .loading { color:#0d6efd; }
+#status-area .error { color:#dc3545; }
