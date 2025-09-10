@@ -42,13 +42,34 @@ function applyData(cardEl, pokemon) {
   if (!cardEl || !pokemon) return;
   cardEl.dataset.id = pokemon.id;
   const nameEl = cardEl.querySelector('.name');
+  const enNameEl = cardEl.querySelector('.english-name');
   const imgEl = cardEl.querySelector('.sprite');
+  const animatedImgEl = cardEl.querySelector('.animated');
   const descEl = cardEl.querySelector('.description');
   const typesEl = cardEl.querySelector('.types');
+  const hpBadgeVal = cardEl.querySelector('.hp-badge .hp-value');
+  const statHp = cardEl.querySelector('.stat-value.hp');
+  const statAtk = cardEl.querySelector('.stat-value.attack');
+  const statDef = cardEl.querySelector('.stat-value.defense');
+  const statSpd = cardEl.querySelector('.stat-value.speed');
+
   if (nameEl) nameEl.textContent = pokemon.name;
+  if (enNameEl) {
+    // 假設英/中名稱相同時不重複顯示
+    if (pokemon.name && pokemon.name.toLowerCase() === (pokemon.englishName || '').toLowerCase()) {
+      enNameEl.textContent = '';
+    } else {
+      enNameEl.textContent = pokemon.englishName || '';
+    }
+  }
   if (imgEl) {
     imgEl.src = pokemon.imageUrl;
     imgEl.alt = pokemon.name || 'pokemon';
+  }
+  if (animatedImgEl) {
+    const anim = pokemon.animatedImage || pokemon.imageUrl;
+    animatedImgEl.src = anim;
+    animatedImgEl.alt = (pokemon.name || 'pokemon') + ' animated image';
   }
   if (descEl) descEl.textContent = pokemon.description;
   if (typesEl) {
@@ -60,13 +81,18 @@ function applyData(cardEl, pokemon) {
       typesEl.appendChild(span);
     });
   }
+  if (hpBadgeVal) hpBadgeVal.textContent = pokemon.hp ?? 0;
+  if (statHp) statHp.textContent = pokemon.hp ?? 0;
+  if (statAtk) statAtk.textContent = pokemon.attack ?? 0;
+  if (statDef) statDef.textContent = pokemon.defense ?? 0;
+  if (statSpd) statSpd.textContent = pokemon.speed ?? 0;
+
   // 主色背景套用在卡片外層（或可改在 front/back）
   if (pokemon.primaryType) {
     const color = colorForType(pokemon.primaryType);
     cardEl.style.setProperty('--primary-color', color);
-    // 可加上漸層或背景色：
-    cardEl.querySelectorAll('.poke-card-face').forEach(face => {
-      face.style.background = `linear-gradient(135deg, ${color} 0%, #ffffff 85%)`;
+    cardEl.querySelectorAll('.poke-card-face.front').forEach(face => {
+      face.style.background = `linear-gradient(160deg, ${color} 0%, #ffffff 75%)`;
     });
   }
 }

@@ -14,12 +14,31 @@ function findAnimatedSprite(rawPokemon) {
   }
 }
 
-function selectImageUrl(rawPokemon) {
-  const animated = findAnimatedSprite(rawPokemon);
-  if (animated) return animated;
-  const staticImg = rawPokemon?.sprites?.front_default;
-  if (staticImg) return staticImg;
+function findSvgSprite(rawPokemon) {
+  try {
+    return rawPokemon?.sprites?.other?.dream_world?.front_default || null;
+  } catch (_) {
+    return null;
+  }
+}
+
+function findStaticPng(rawPokemon) {
+  return rawPokemon?.sprites?.front_default || null;
+}
+
+// 主顯示圖優先序： dream_world SVG → front_default → UNKNOWN
+function selectPrimaryImage(rawPokemon) {
+  const svg = findSvgSprite(rawPokemon);
+  if (svg) return svg;
+  const png = findStaticPng(rawPokemon);
+  if (png) return png;
   return UNKNOWN_IMAGE;
+}
+
+// 向後相容：舊測試使用 imageUrl 指向 (animated || static)；現改為 primary image（不再自動取 animated）
+// 若需要背面動圖顯示，另外提供 animatedImage 欄位。
+function selectImageUrl(rawPokemon) {
+  return selectPrimaryImage(rawPokemon);
 }
 
 const LANGUAGE_PRIORITY = ['zh-Hant', 'zh-Hans', 'en'];
@@ -67,12 +86,23 @@ export function buildPokemon(rawPokemon, rawSpecies, timestamp = Date.now()) {
   const { types, primaryType } = extractTypes(rawPokemon);
   const name = selectName(rawSpecies);
   const description = selectDescription(rawSpecies);
-  const imageUrl = selectImageUrl(rawPokemon);
+  const svgImage = findSvgSprite(rawPokemon);
+  const staticImage = findStaticPng(rawPokemon);
+  const animatedImage = findAnimatedSprite(rawPokemon);
+  const imageUrl = selectPrimaryImage(rawPokemon);
+  const stats = extractStats(rawPokemon);
   return {
     id: rawPokemon.id,
     name,
     description,
     imageUrl,
+    svgImage: svgImage || null,
+    staticImage: staticImage || null,
+    animatedImage: animatedImage || null,
+    hp: stats.hp,
+    attack: stats.attack,
+    defense: stats.defense,
+    speed: stats.speed,
     types,
     primaryType,
     primaryColor: primaryType ? colorForType(primaryType) : '#CCCCCC',
@@ -87,4 +117,27 @@ export const __testables = {
   selectDescription,
   extractTypes,
   normalizeWhitespace,
+  findAnimatedSprite,
+  findSvgSprite,
+  findStaticPng,
+  selectPrimaryImage,
+  extractStats,
 };
+
+// 取出指定四項能力值
+function extractStats(rawPokemon) {
+  const result = { hp: 0, attack: 0, defense: 0, speed: 0 };
+  if (!Array.isArray(rawPokemon?.stats)) return result;
+  rawPokemon.stats.forEach(s => {
+    const name = s?.stat?.name;
+    const val = typeof s?.base_stat === 'number' ? s.base_stat : 0;
+    switch (name) {
+      case 'hp': result.hp = val; break;
+      case 'attack': result.attack = val; break;
+      case 'defense': result.defense = val; break;
+      case 'speed': result.speed = val; break;
+      default: break; // 其他（special-attack 等）暫不顯示
+    }
+  });
+  return result;
+}

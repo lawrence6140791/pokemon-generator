@@ -11,7 +11,10 @@
   <div class="container py-4" id="app-root">
     <h1 class="mb-4 h3 text-center">寶可夢隨機卡片生成器</h1>
     <div class="d-flex justify-content-center mb-3">
-      <button id="draw-btn" class="btn btn-primary">抽卡</button>
+      <button id="draw-btn" class="pokeball-btn" aria-label="抽卡" title="抽卡">
+        <img src="assets/pokeball.svg" alt="" class="pokeball-icon" />
+        <div class="pokeball-label mt-2 fw-medium">Get a Pokemon</div>
+      </button>
     </div>
   <div id="status-area" class="mb-3" aria-live="polite" role="status"></div>
     <div id="card-area" class="d-flex justify-content-center"></div>
