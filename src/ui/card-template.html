@@ -1,0 +1,22 @@
+<!-- card-template.html
+  定義卡片 DOM 結構：front / back
+  使用時由 card.js 載入並克隆。
+-->
+<template id="pokemon-card-template">
+  <div class="poke-card" data-id="" aria-live="polite">
+    <div class="poke-card-inner">
+      <div class="poke-card-face front bg-white">
+        <div class="fw-bold name mb-2">—</div>
+        <div class="image-wrapper mb-2 text-center">
+          <img class="sprite img-fluid" alt="pokemon image" />
+        </div>
+        <div class="types d-flex gap-2 flex-wrap justify-content-center"></div>
+        <div class="small text-muted mt-2">點擊翻面查看更多</div>
+      </div>
+      <div class="poke-card-face back bg-white">
+        <div class="description small"></div>
+        <div class="small text-muted mt-3">再次點擊翻回正面</div>
+      </div>
+    </div>
+  </div>
+</template>
