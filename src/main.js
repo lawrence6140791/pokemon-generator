@@ -45,11 +45,11 @@ function bindEvents() {
   });
 }
 
-async function triggerDraw({ isRetry = false } = {}) {
+async function triggerDraw({ isRetry = false, fixedId = null } = {}) {
   if (isInProgress() && !isRetry) return; // 避免人工雙擊並行
   clearError();
   startLoading();
-  let id = nextRandom(getLastId());
+  let id = fixedId != null ? fixedId : nextRandom(getLastId());
   if (!isRetry) {
     const started = begin(id);
     if (!started) {
@@ -94,3 +94,12 @@ function renderOrUpdateCard(pokemon) {
 }
 
 bindEvents();
+
+// 初始載入顯示皮卡丘 (ID=25)
+(async function initialLoad() {
+  try {
+    await triggerDraw({ fixedId: 25 });
+  } catch (e) {
+    console.warn('[init] initial load failed', e);
+  }
+})();

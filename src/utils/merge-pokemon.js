@@ -41,17 +41,18 @@ function selectImageUrl(rawPokemon) {
   return selectPrimaryImage(rawPokemon);
 }
 
-const LANGUAGE_PRIORITY = ['zh-Hant', 'zh-Hans', 'en'];
+const NAME_LANGUAGE_PRIORITY = ['zh-Hant', 'zh-Hans', 'en'];
+const DESCRIPTION_LANGUAGE_PRIORITY = ['zh-Hant', 'zh-Hans'];
 
-function extractLocalized(entries, valueKey) {
+function extractLocalized(entries, valueKey, priority) {
   if (!Array.isArray(entries)) return DEFAULT_TEXT;
-  for (const lang of LANGUAGE_PRIORITY) {
+  for (const lang of priority) {
     const match = entries.find(e => e?.language?.name === lang);
     if (match && match[valueKey]) {
       return normalizeWhitespace(match[valueKey]);
     }
   }
-  // fallback: 若都找不到 en，嘗試第一個有效文字；否則 DEFAULT_TEXT
+  // fallback: 尋找第一個有效文字；否則 DEFAULT_TEXT
   const any = entries.find(e => e && e[valueKey]);
   return any ? normalizeWhitespace(any[valueKey]) : DEFAULT_TEXT;
 }
@@ -63,11 +64,18 @@ function normalizeWhitespace(str) {
 }
 
 function selectName(rawSpecies) {
-  return extractLocalized(rawSpecies?.names, 'name');
+  return extractLocalized(rawSpecies?.names, 'name', NAME_LANGUAGE_PRIORITY);
 }
 
 function selectDescription(rawSpecies) {
-  return extractLocalized(rawSpecies?.flavor_text_entries, 'flavor_text');
+  if (!Array.isArray(rawSpecies?.flavor_text_entries)) return DEFAULT_TEXT;
+  for (const lang of DESCRIPTION_LANGUAGE_PRIORITY) {
+    const match = rawSpecies.flavor_text_entries.find(e => e?.language?.name === lang);
+    if (match && match.flavor_text) {
+      return normalizeWhitespace(match.flavor_text);
+    }
+  }
+  return DEFAULT_TEXT;
 }
 
 function extractTypes(rawPokemon) {
@@ -86,6 +94,7 @@ export function buildPokemon(rawPokemon, rawSpecies, timestamp = Date.now()) {
   const { types, primaryType } = extractTypes(rawPokemon);
   const name = selectName(rawSpecies);
   const description = selectDescription(rawSpecies);
+  const englishNameRaw = (rawPokemon?.name || '').trim();
   const svgImage = findSvgSprite(rawPokemon);
   const staticImage = findStaticPng(rawPokemon);
   const animatedImage = findAnimatedSprite(rawPokemon);
@@ -93,7 +102,8 @@ export function buildPokemon(rawPokemon, rawSpecies, timestamp = Date.now()) {
   const stats = extractStats(rawPokemon);
   return {
     id: rawPokemon.id,
-    name,
+  name,
+  englishName: englishNameRaw || '',
     description,
     imageUrl,
     svgImage: svgImage || null,

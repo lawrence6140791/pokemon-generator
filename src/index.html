@@ -10,14 +10,14 @@
 <body class="bg-light">
   <div class="container py-4" id="app-root">
     <h1 class="mb-4 h3 text-center">寶可夢隨機卡片生成器</h1>
-    <div class="d-flex justify-content-center mb-3">
+    <div id="status-area" class="mb-3" aria-live="polite" role="status"></div>
+    <div id="card-area" class="d-flex justify-content-center mb-4"></div>
+    <div class="d-flex justify-content-center">
       <button id="draw-btn" class="pokeball-btn" aria-label="抽卡" title="抽卡">
         <img src="assets/pokeball.svg" alt="" class="pokeball-icon" />
         <div class="pokeball-label mt-2 fw-medium">Get a Pokemon</div>
       </button>
     </div>
-  <div id="status-area" class="mb-3" aria-live="polite" role="status"></div>
-    <div id="card-area" class="d-flex justify-content-center"></div>
   <footer class="mt-5 text-center text-muted small">v<span id="app-version">0.1.1</span></footer>
   </div>
   <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>

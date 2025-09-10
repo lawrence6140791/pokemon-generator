@@ -11,6 +11,7 @@
 - `id` 取值範圍：1..1025（若 API 更新可調整常數）。
 - 兩個請求順序：允許並行；完成後合併資料。
 - 在抽取進行時不得再發送第二組新請求。
+- 初始載入：必須自動載入並顯示 ID=25 (皮卡丘) 作為預設卡片（不計入使用者主動抽取次數）。
 
 ## Response Fields Used (pokemon/{id})
 | Field Path | Purpose |
@@ -27,7 +28,7 @@
 | Field Path | Purpose |
 |------------|---------|
 | names[] | 多語名稱（挑選 zh-Hant → zh-Hans） |
-| flavor_text_entries[] | 多語敘述（挑選 zh-Hant → zh-Hans → en） |
+| flavor_text_entries[] | 多語敘述（挑選 zh-Hant → zh-Hans；都缺則 DEFAULT_TEXT，不再 fallback 英文） |
 
 ## Data Merge Logic
 Pseudo:
@@ -35,7 +36,7 @@ Pseudo:
 base = pokemon/{id}
 species = pokemon-species/{id}
 cn = findName(species.names, ['zh-Hant','zh-Hans'])
-flavor = findFlavor(species.flavor_text_entries, ['zh-Hant','zh-Hans','en'])
+flavor = findFlavor(species.flavor_text_entries, ['zh-Hant','zh-Hans']) || DEFAULT_TEXT
 imageSvg = base.sprites.other.dream_world.front_default
 animated = base.sprites.versions['generation-v']['black-white'].animated.front_default
 staticPng = base.sprites.front_default
@@ -54,6 +55,7 @@ stats = pickStats(base.stats) // 取出 { hp, attack, defense, speed }
 | 缺英文名稱 | 顯示 DEFAULT_TEXT |
 | 缺 dream_world / 靜態圖 | 使用 UNKNOWN_IMAGE |
 | 缺動圖 | 背面顯示靜態主圖 (image) |
+| 初始載入 ID=25 失敗 | 套用同一般錯誤重試策略 |
 
 ## Non-Functional Notes
 - 時間閾值：載入指示 300ms 閾值；超過顯示。
@@ -61,14 +63,18 @@ stats = pickStats(base.stats) // 取出 { hp, attack, defense, speed }
 - 抽卡按鈕視覺：使用 Poké Ball 造型按鈕（svg + 漸層）取代文字按鈕。
 - 卡片正面右上角顯示 HP badge。
 - 卡片正面底部顯示四個 stats：HP / 攻擊 / 防禦 / 速度。
+- Poké Ball 按鈕位置：位於卡片區域下方中央。
+- 資料與圖片一致性：主圖先行預載（Image 對象 onload）後再一次性替換 DOM，避免出現新文字+舊圖片交錯。
 
 ## Testable Assertions
 1. 抽取請求期間第二次點擊不產生新請求。
 2. 失敗後 5 秒自動重試一次。
 3. primaryType 與背景色映射一致。
 4. 連續同 ID 只重抽一次。
-5. 缺語系時依序 fallback。
+5. 描述語系缺 zh-Hant 與 zh-Hans 時顯示 DEFAULT_TEXT（不顯示英文描述）。
 6. dream_world SVG 存在時優先顯示；缺失時 fallback 至 front_default；再缺使用 UNKNOWN_IMAGE。
 7. 動圖存在時背面顯示動圖；缺動圖時顯示靜態主圖或替代圖。
 8. 卡片正面顯示 HP badge 與四個 stats 數值。
 9. 抽卡按鈕以 Poké Ball 圖示呈現（仍保留可達性：aria-label="抽卡"）。
+10. 初始進入頁面已顯示 ID=25 卡片。
+11. 抽卡後卡片圖片與文字內容同步更新，不出現文字先更新而圖片仍為舊圖的狀態。

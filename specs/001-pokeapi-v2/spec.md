@@ -90,8 +90,11 @@ When creating this spec from a user prompt:
 - **FR-012**: 系統 MUST 避免連續顯示同一寶可夢（已定義於 FR-007 重抽行為）。
 - **FR-013**: 系統 SHOULD 在載入超過 300ms 時顯示載入中視覺狀態（以免瞬閃），Poké Ball 按鈕可顯示簡易動態或禁用狀態。
 - **FR-014**: 系統 MUST 提供卡片翻轉 0.5 秒的平滑動畫。
--- **FR-016**: 系統 MUST 以 Poké Ball 造型按鈕作為抽卡觸發（保留無障礙 aria-label="抽卡"）。
 - **FR-015**: 系統 MUST 不揭露技術錯誤細節給最終使用者，只顯示一般性失敗訊息。
+ - **FR-016**: 系統 MUST 以 Poké Ball 造型按鈕作為抽卡觸發（保留 aria-label="抽卡"），並置於卡片下方中央。
+ - **FR-017**: 系統 MUST 初始載入自動顯示 ID=25 卡片（失敗則走一般錯誤/自動重試流程）。
+ - **FR-018**: 系統 MUST 描述語系 fallback 僅限 zh-Hant → zh-Hans → DEFAULT_TEXT（不使用英文描述）。
+ - **FR-019**: 系統 MUST 新卡片主圖載入完成後才一次性顯示新圖與新文字，避免短暫顯示「新文字 + 舊圖片」。
 
 *Ambiguity Examples 已以上述 [NEEDS CLARIFICATION] 標記。*
 

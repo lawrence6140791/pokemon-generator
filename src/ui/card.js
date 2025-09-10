@@ -35,7 +35,27 @@ export function renderCard(pokemon) {
 }
 
 export function updateCard(cardEl, pokemon) {
-  applyData(cardEl, pokemon);
+  // 圖片預載策略：先預載主圖，成功後再一次性更新所有欄位
+  if (!cardEl || !pokemon) return;
+  const newImgUrl = pokemon.imageUrl;
+  if (newImgUrl) {
+    const preloader = new Image();
+    preloader.onload = () => {
+      applyData(cardEl, pokemon);
+      const imgEl = cardEl.querySelector('.sprite');
+      if (imgEl) {
+        imgEl.classList.add('fade-in');
+        setTimeout(() => imgEl.classList.remove('fade-in'), 400);
+      }
+    };
+    preloader.onerror = () => {
+      // 即使載入失敗仍嘗試更新（會使用 fallback 或 UNKNOWN_IMAGE）
+      applyData(cardEl, pokemon);
+    };
+    preloader.src = newImgUrl;
+  } else {
+    applyData(cardEl, pokemon);
+  }
 }
 
 function applyData(cardEl, pokemon) {
