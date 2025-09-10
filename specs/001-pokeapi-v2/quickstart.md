@@ -39,3 +39,18 @@
 
 ## 快速重置
 重新整理頁面回到初始狀態。
+
+## 附錄：版本 0.1.0 驗收清單 (T030)
+| 項目 | 狀態 | 備註 |
+|------|------|------|
+| 隨機抽卡顯示卡片 | ✅ | 1..1025 範圍 |
+| 語系 fallback | ✅ | zh-Hant → zh-Hans → en → 預設 |
+| 圖片 fallback | ✅ | animated → front_default → unknown.svg |
+| 0.5s 翻面動畫 | ✅ | CSS transition 已實作 |
+| 單次自動重試 | ✅ | 第一次失敗 5s 後重試一次 |
+| Duplicate 再抽一次 | ✅ | `nextRandom` 第二次仍可同值接受 |
+| 載入延遲顯示 | ✅ | >300ms 顯示 loading |
+| 390px 最小寬 | ✅ | styles.css 設定 |
+| 無障礙初步 | ✅ | aria-live + alt (文件補充) |
+| 占位測試檔 | ✅ | contract + integration 描述 | 
+
